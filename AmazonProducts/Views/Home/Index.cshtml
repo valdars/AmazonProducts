@@ -1,0 +1,84 @@
+﻿@model IEnumerable<AmazonProducts.Models.ProductViewModel>
+
+@{
+    ViewBag.Title = "Amazon search";
+    var t = Model;
+    var currencies = (IEnumerable<string>)ViewData["Currencies"];
+    var defaultCurrency = (string)ViewData["DefaultCurrency"];
+    var keywords = (string)ViewData["Keywords"];
+    var count = (int)(ViewData["Count"] == null ? 0 : ViewData["Count"]);
+    var i = 1;
+}
+
+@section scripts {
+    @Scripts.Render("~/Scripts/Site.js")
+}
+<script type="text/javascript">
+    var currency = "@defaultCurrency";
+    var lastCurrency = null;
+</script>
+<div class="row">
+    <div class="col-lg-6">
+        @using (Html.BeginForm())
+        {
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+                </span>
+                <input type="text" class="form-control" name="Keywords" value="@keywords" placeholder="Search for...">
+            </div>
+        }
+    </div>
+    <div class="col-lg-6">
+        <div class="btn-group pull-right" role="group" aria-label="Currencies">
+            @foreach (var currency in currencies)
+            {
+                <button type="button" class="btn @(currency == defaultCurrency ? "btn-primary" : "btn-default")" data-currencycode="@currency">@currency</button>
+            }
+        </div>
+    </div>
+</div>
+<br />
+<div class="page active">
+    @foreach (var product in Model)
+    {
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><a href="@product.Link">@product.Title</a></h3>
+            </div>
+            <div class="panel-body clearfix">
+                <div class="row">
+                    @if (product.Images.Any())
+                    {
+                        <div class="col-xs-6">
+                            <img class="img-responsive" src="@product.Images.First()" />
+                        </div>
+                    }
+                    <div class="col-xs-6">
+                        <p>
+                            @Html.Raw(product.Description)
+                        </p>
+                        <p>Price: <span class="price">@product.LowestPrice.ToString("#.00")</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        if (i % 13 == 0)
+        {
+            @:</div><div class="page">
+        }
+        i++;
+    }
+    @if (count > 50)
+    {
+        <p class="text-center">You have reached end of results. If you can't find what you are looking for try refining search.</p>
+    }
+</div>
+<nav>
+    <ul class="pagination">
+        @for (int j = 1; j <= Math.Ceiling(Model.Count() / 13f); j++)
+        {
+            <li class="@(j == 1 ? "active" : "")"><a data-page="@j" href="#">@j</a></li>
+        }
+    </ul>
+</nav>
